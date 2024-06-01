@@ -59,6 +59,12 @@
     <Image Include="platform_2.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="playbutton.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="quitbutton.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="enet.h">

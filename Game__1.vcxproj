@@ -144,7 +144,9 @@
     <Image Include="platform_1.png" />
     <Image Include="platform_2.png" />
     <Image Include="platform_tile_1.png" />
+    <Image Include="playbutton.png" />
     <Image Include="player_2_walking.png" />
+    <Image Include="quitbutton.png" />
     <Image Include="sky_1.png" />
     <Image Include="sky_background_1.png" />
     <Image Include="tileset_1.png" />

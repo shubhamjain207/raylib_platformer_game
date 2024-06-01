@@ -13,6 +13,9 @@
 
 #include <iostream>
 
+#include "raymath.h"
+
+
 
 
 float PLAYER_SPEED = 250.0f;
@@ -25,7 +28,6 @@ enum GAME_STATES {
     MAIN_MENU, 
     MAIN_GAME, 
    
-
 };
 
 int CURRENT_GAME_STATE = MAIN_MENU;
@@ -80,9 +82,6 @@ void timerFunc() {
             enemies.push_back(e1);
         
         }
-        
-    
-       
 
         std::this_thread::sleep_for(std::chrono::seconds(3));
 
@@ -101,13 +100,21 @@ int main(void)
     Texture2D level_1_enemy_1 = LoadTexture("level_1_enemy_3.png");
     Texture2D player_1 = LoadTexture("player_2_walking.png");
 
+    Texture2D playbutton = LoadTexture("playbutton.png");
+
+    playbutton.height = 50;
+    playbutton.width = 200;
+    Texture2D quitbutton = LoadTexture("quitbutton.png");
+    quitbutton.height = 50;
+    quitbutton.width = 200;
+
 
     float frameWidth = (float)(player_1.width / 3);
 
-
-
+    
     RenderTexture2D renderTexture = LoadRenderTexture(400, 600);
 
+    int score = 0;
 
 
     float player_vel_x = 0.0, player_vel_y = 0.0;
@@ -121,7 +128,6 @@ int main(void)
         Vector2 position;
         Vector2 direction;
    
-
     };
 
    
@@ -195,12 +201,9 @@ int main(void)
 
 
     
-
-
     p1.texture = LoadTexture("platform_2.png");;
     p1.texture.height = p1.size.y;
     p1.texture.width = p1.size.x;
-
 
     platforms.push_back(p1);
     
@@ -222,347 +225,375 @@ int main(void)
         if (CURRENT_GAME_STATE == MAIN_MENU) {
         
 
+            BeginDrawing();
+            ClearBackground(BLACK);
+
+
+            DrawTexture(playbutton, 100, 300, WHITE);
+            DrawTexture(quitbutton, 100, 400, WHITE);
+
+
+            if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+            
+                float mousex = GetMousePosition().x;
+                float mousey = GetMousePosition().y;
+
+                if (mousex >= 100 && mousex <= 300 && mousey >= 300 && mousey < 350) {
+                
+
+                    CURRENT_GAME_STATE = MAIN_GAME;
+                
+                }
+
+                else if (mousex >= 100 && mousex <= 300 && mousey >= 400 && mousey < 450) {
+                
+                    exit(0);
+                
+                }
+            
+            }
+
+
+            EndDrawing();
+
         
         }
 
         else if (CURRENT_GAME_STATE == MAIN_GAME) {
-        
-
-        
-        }
 
 
+            float deltaTime = GetFrameTime();
 
 
-        float deltaTime = GetFrameTime();
-
-
-        BeginDrawing();
-        ClearBackground(BLACK);
-
-        if (IsKeyDown(KEY_A)) {
-        
-            player_vel_x = -PLAYER_SPEED;
-            if (!isJumping) {
-
-                timer += GetFrameTime();
-                if (frameWidth >= 0) {
-                    frameWidth *= -1;
-                }
-
-            }
-        
-        }
-
-        if (IsKeyDown(KEY_D)) {
-
-            player_vel_x = PLAYER_SPEED;
-            if (!isJumping) {
-
-                timer += GetFrameTime();
-                if (frameWidth < 0) {
-                    frameWidth *= -1;
-                }
-
-            }
-
-
-        }
-
-        if (IsKeyReleased(KEY_A) || IsKeyReleased(KEY_D)) {
-        
-            player_vel_x = 0;
-
-        
-        }
-
-        if (IsKeyPressed(KEY_SPACE) && !isJumping) {
-            player_vel_y = -300;
-            isJumping = true;
-        }
-
-
-      /*  while (true) {*/
-        
-
-        player_rect.height = 50;
-        player_rect.width = 50;
-        player_rect.x = player_pos_x;
-        player_rect.y = player_pos_y;
+            BeginDrawing();
+            ClearBackground(BLACK);
 
 
 
+            if (IsKeyDown(KEY_A)) {
 
-        
-        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-           
+                player_vel_x = -PLAYER_SPEED;
+                if (!isJumping) {
 
-            Vector2 direction_bullet = Vector2Normalize({ GetMousePosition().x - player_pos_x, GetMousePosition().y - player_pos_y });
-
-
-            bullet b1;
-            b1.position.x = player_pos_x + 25;
-            b1.position.y = player_pos_y + 25;
-
-            b1.direction = direction_bullet;
-            bullets.push_back(b1);
-           
-        }
-
-        
-
-       /* }*/
-
-
-        player_vel_y += 400.0f * deltaTime;       
-
-        
-
-        if (player_pos_y >= 600 - player_1.height) {
-            player_pos_y = 600 - (player_1.height + 0.001);
-            player_vel_y = 0;
-            isJumping = false;
-        }
-
-        if (player_pos_x + frameWidth > 400 ) {
-            player_pos_x = 400 - (frameWidth + 0.001);
-            player_vel_x = 0;
-        }
-
-
-        if (player_pos_x < 0) {
-            player_pos_x = 1;
-            player_vel_x = 0;
-        }
-
-
-        player_pos_x += player_vel_x * GetFrameTime();
-        player_pos_y += player_vel_y * GetFrameTime();
-
-
-        for (int i = 0; i < bullets.size(); i++) {
-
-            bullets[i].position.x += bullets[i].direction.x * 700 * deltaTime;
-            bullets[i].position.y += bullets[i].direction.y * 700 * deltaTime;
-
-            
-
-            if (bullets[i].position.x < 0 || bullets[i].position.x > 400 || bullets[i].position.y < 0 || bullets[i].position.y > 600) {
-            
-                bullets.erase(bullets.begin() + i);
-            
-            }
-
-            
-        }
-
-        for (int i = 0; i < bullets.size(); i++) {
-        
-            for (int j = 0; j < enemies.size(); j++) {
-
-                if (CheckCollisionCircleRec(bullets[i].position, 6, enemies[j].collisionRect)) {
-    
-                    enemies.erase(enemies.begin() + j);
-                    bullets.erase(bullets.begin() + i);
-                    break;
+                    timer += GetFrameTime();
+                    if (frameWidth >= 0) {
+                        frameWidth *= -1;
+                    }
 
                 }
 
             }
-        
 
-   
+            if (IsKeyDown(KEY_D)) {
 
+                player_vel_x = PLAYER_SPEED;
+                if (!isJumping) {
 
-        }
-
-        for (int i = 0;i < bullets.size(); i++) {
-        
-            for (int j = 0; j < platforms.size(); j++) {
-
-                if (CheckCollisionCircleRec(bullets[i].position, 6, platforms[j].collisionRect)) {
-
-                    bullets.erase(bullets.begin() + i);
-                    break;
+                    timer += GetFrameTime();
+                    if (frameWidth < 0) {
+                        frameWidth *= -1;
+                    }
 
                 }
 
+
             }
-        
-        
-        }
 
+            if (IsKeyReleased(KEY_A) || IsKeyReleased(KEY_D)) {
 
-       
-
-        for (int i = 0; i < enemies.size();i++) {
-
-            enemies[i].direction = Vector2Normalize({ player_pos_x - enemies[i].position.x, player_pos_y - enemies[i].position.y });
-
-            enemies[i].position.x += enemies[i].direction.x * 80 * deltaTime;
-            enemies[i].position.y += enemies[i].direction.y * 80 * deltaTime;
-
-
-            enemies[i].collisionRect.x = enemies[i].position.x;
-            enemies[i].collisionRect.y = enemies[i].position.y;
-
-            
-            if (CheckCollisionRecs(enemies[i].collisionRect, player_rect)) {
-            
+                player_vel_x = 0;
 
 
             }
 
-
-        }
-
-
-
-        //platform player collision
-
-        for (int i = 0; i < platforms.size(); i++) {
-        
-           
-            
-            
-            if (player_pos_y > platforms[i].position.y - (player_1.height + 1) &&
-
-                player_pos_x >= platforms[i].position.x &&
-                 
-                player_pos_x <= platforms[i].position.x + platforms[i].size.x && 
-
-                platforms[i].position.y > player_pos_y + (player_1.height)
-
-                
-                ) {
+            if (IsKeyPressed(KEY_SPACE) && !isJumping) {
+                player_vel_y = -300;
+                isJumping = true;
+            }
 
 
-                player_pos_y = platforms[i].position.y - (player_1.height + 1);
+            /*  while (true) {*/
+
+
+            player_rect.height = 50;
+            player_rect.width = 50;
+            player_rect.x = player_pos_x;
+            player_rect.y = player_pos_y;
+
+
+
+
+
+            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+
+
+                Vector2 direction_bullet = Vector2Normalize({ GetMousePosition().x - player_pos_x, GetMousePosition().y - player_pos_y });
+
+
+                bullet b1;
+                b1.position.x = player_pos_x + 25;
+                b1.position.y = player_pos_y + 25;
+
+                b1.direction = direction_bullet;
+                bullets.push_back(b1);
+
+            }
+
+
+
+            /* }*/
+
+
+            player_vel_y += 400.0f * deltaTime;
+
+
+
+            if (player_pos_y >= 600 - player_1.height) {
+                player_pos_y = 600 - (player_1.height + 0.001);
                 player_vel_y = 0;
                 isJumping = false;
-            
             }
 
-
-            if (player_pos_y < platforms[i].position.y + platforms[i].size.y &&
-
-                player_pos_x >= platforms[i].position.x &&
-
-                player_pos_x <= platforms[i].position.x + platforms[i].size.x &&
-
-                platforms[i].position.y < player_pos_y
-
-
-                ) {
-
-                player_pos_y = platforms[i].position.y + platforms[i].size.y + 1;
-                player_vel_y = 0;
-                isJumping = true;
-
-            }
-
-
-
-
-
-
-            if ((player_pos_x + frameWidth > platforms[i].position.x && platforms[i].position.x!=0 && 
-                
-                platforms[i].position.y > player_pos_y && 
-
-                platforms[i].position.y < player_pos_y + (player_1.height )) ||
-
-
-                (player_pos_x + frameWidth > platforms[i].position.x && platforms[i].position.x != 0 &&
-
-                    platforms[i].position.y + platforms[i].size.y > player_pos_y &&
-
-                    platforms[i].position.y + platforms[i].size.y < player_pos_y + (player_1.height))
-
-
-
-                ) {
-
-                player_pos_x = platforms[i].position.x - (frameWidth + 1);
+            if (player_pos_x + frameWidth > 400) {
+                player_pos_x = 400 - (frameWidth + 0.001);
                 player_vel_x = 0;
-                isJumping = true;
-
             }
 
 
-
-
-            if ((player_pos_x < platforms[i].size.x && platforms[i].position.x == 0 &&
-
-                platforms[i].position.y > player_pos_y &&
-
-                platforms[i].position.y < player_pos_y + (player_1.height)) ||
-
-
-                (player_pos_x < platforms[i].size.x && platforms[i].position.x == 0 &&
-
-                    platforms[i].position.y + platforms[i].size.y > player_pos_y &&
-
-                    platforms[i].position.y + platforms[i].size.y < player_pos_y + (player_1.height))
-
-
-                ) {
-
-
-                player_pos_x = platforms[i].position.x + platforms[i].size.x + 1;
+            if (player_pos_x < 0) {
+                player_pos_x = 1;
                 player_vel_x = 0;
-                isJumping = true;
+            }
+
+
+            player_pos_x += player_vel_x * GetFrameTime();
+            player_pos_y += player_vel_y * GetFrameTime();
+
+
+            for (int i = 0; i < bullets.size(); i++) {
+
+                bullets[i].position.x += bullets[i].direction.x * 700 * deltaTime;
+                bullets[i].position.y += bullets[i].direction.y * 700 * deltaTime;
+
+
+
+                if (bullets[i].position.x < 0 || bullets[i].position.x > 400 || bullets[i].position.y < 0 || bullets[i].position.y > 600) {
+
+                    bullets.erase(bullets.begin() + i);
+
+                }
+
 
             }
-            
+
+            for (int i = 0; i < bullets.size(); i++) {
+
+                for (int j = 0; j < enemies.size(); j++) {
+
+                    if (CheckCollisionCircleRec(bullets[i].position, 6, enemies[j].collisionRect)) {
+
+                        score++;
+
+                        enemies.erase(enemies.begin() + j);
+                        bullets.erase(bullets.begin() + i);
+                        break;
+
+                    }
+
+                }
 
 
-        
+            }
+
+            for (int i = 0;i < bullets.size(); i++) {
+
+                for (int j = 0; j < platforms.size(); j++) {
+
+                    if (CheckCollisionCircleRec(bullets[i].position, 6, platforms[j].collisionRect)) {
+
+                        bullets.erase(bullets.begin() + i);
+                        break;
+
+                    }
+
+                }
+
+
+            }
+
+
+
+
+            for (int i = 0; i < enemies.size();i++) {
+
+                enemies[i].direction = Vector2Normalize({ player_pos_x - enemies[i].position.x, player_pos_y - enemies[i].position.y });
+
+                enemies[i].position.x += enemies[i].direction.x * 80 * deltaTime;
+                enemies[i].position.y += enemies[i].direction.y * 80 * deltaTime;
+
+
+                enemies[i].collisionRect.x = enemies[i].position.x;
+                enemies[i].collisionRect.y = enemies[i].position.y;
+
+
+                if (CheckCollisionRecs(enemies[i].collisionRect, player_rect)) {
+
+                    CURRENT_GAME_STATE = MAIN_MENU;
+
+                }
+
+
+            }
+
+
+
+            //platform player collision
+
+            for (int i = 0; i < platforms.size(); i++) {
+
+
+
+
+                if (player_pos_y > platforms[i].position.y - (player_1.height + 1) &&
+
+                    player_pos_x >= platforms[i].position.x &&
+
+                    player_pos_x <= platforms[i].position.x + platforms[i].size.x &&
+
+                    platforms[i].position.y > player_pos_y + (player_1.height)
+
+
+                    ) {
+
+
+                    player_pos_y = platforms[i].position.y - (player_1.height + 1);
+                    player_vel_y = 0;
+                    isJumping = false;
+
+                }
+
+
+                if (player_pos_y < platforms[i].position.y + platforms[i].size.y &&
+
+                    player_pos_x >= platforms[i].position.x &&
+
+                    player_pos_x <= platforms[i].position.x + platforms[i].size.x &&
+
+                    platforms[i].position.y < player_pos_y
+
+
+                    ) {
+
+                    player_pos_y = platforms[i].position.y + platforms[i].size.y + 1;
+                    player_vel_y = 0;
+                    isJumping = true;
+
+                }
+
+
+
+
+                if ((player_pos_x + frameWidth > platforms[i].position.x && platforms[i].position.x != 0 &&
+
+                    platforms[i].position.y > player_pos_y &&
+
+                    platforms[i].position.y < player_pos_y + (player_1.height)) ||
+
+
+                    (player_pos_x + frameWidth > platforms[i].position.x && platforms[i].position.x != 0 &&
+
+                        platforms[i].position.y + platforms[i].size.y > player_pos_y &&
+
+                        platforms[i].position.y + platforms[i].size.y < player_pos_y + (player_1.height))
+
+
+
+                    ) {
+
+                    player_pos_x = platforms[i].position.x - (frameWidth + 1);
+                    player_vel_x = 0;
+                    isJumping = true;
+
+                }
+
+
+
+
+                if ((player_pos_x < platforms[i].size.x && platforms[i].position.x == 0 &&
+
+                    platforms[i].position.y > player_pos_y &&
+
+                    platforms[i].position.y < player_pos_y + (player_1.height)) ||
+
+
+                    (player_pos_x < platforms[i].size.x && platforms[i].position.x == 0 &&
+
+                        platforms[i].position.y + platforms[i].size.y > player_pos_y &&
+
+                        platforms[i].position.y + platforms[i].size.y < player_pos_y + (player_1.height))
+
+
+                    ) {
+
+
+                    player_pos_x = platforms[i].position.x + platforms[i].size.x + 1;
+                    player_vel_x = 0;
+                    isJumping = true;
+
+                }
+
+
+
+
+            }
+
+
+
+            DrawTexture(renderTexture.texture, 0, 0, WHITE);
+
+
+            for (int i = 0; i < bullets.size(); i++) {
+
+                DrawCircle(bullets[i].position.x, bullets[i].position.y, BULLET_SIZE, BLACK);
+
+            }
+
+
+
+            for (int i = 0; i < platforms.size(); i++) {
+
+                DrawTexture(platforms[i].texture, platforms[i].position.x, platforms[i].position.y, WHITE);
+
+
+            }
+
+            for (int i = 0; i < enemies.size(); i++) {
+
+                DrawTexture(level_1_enemy_1, enemies[i].position.x, enemies[i].position.y, WHITE);
+
+            }
+
+
+            DrawText(std::to_string(score).c_str(), 300, 20, 30, BLACK);
+
+
+
+
+            if (timer >= 0.1f) {
+
+                timer = 0.0f;
+                frame += 1;
+
+            }
+
+
+
+            frame = frame % maxFrames;
+
+            DrawTextureRec(player_1, { frameWidth * frame,0.0f,frameWidth,(float)player_1.height }, { player_pos_x, player_pos_y }, YELLOW);
+            EndDrawing();
+
         }
-
-      
-
-        DrawTexture(renderTexture.texture, 0, 0, WHITE);
-
-
-        for (int i = 0; i < bullets.size(); i++) {
-
-            DrawCircle(bullets[i].position.x, bullets[i].position.y, BULLET_SIZE, BLACK);
-
-        }
-
-
-
-        for (int i = 0; i < platforms.size(); i++) {
-
-            DrawTexture(platforms[i].texture, platforms[i].position.x, platforms[i].position.y, WHITE);
-
-                  
-        }
-
-        for (int i = 0; i < enemies.size(); i++) {
-
-            DrawTexture(level_1_enemy_1, enemies[i].position.x, enemies[i].position.y, WHITE);
-
-        }
-
-        
-        DrawText(std::to_string(GetFPS()).c_str(), 300, 20, 20, BLACK);
- 
-
-        if (timer >= 0.1f) {
-        
-            timer = 0.0f;
-            frame += 1;
-        
-        }
-
-        
-
-        frame = frame % maxFrames;
-        
-        DrawTextureRec(player_1, {frameWidth * frame,0.0f,frameWidth,(float)player_1.height}, {player_pos_x, player_pos_y}, YELLOW);
-        EndDrawing();
     }
 
     t1.detach();
